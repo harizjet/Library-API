@@ -1,4 +1,4 @@
-module example/Basic-Golang-Api
+module library/Basic-Golang-Api
 
 go 1.18
 

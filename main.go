@@ -1,7 +1,7 @@
 package main
 
 import (
-	"example/Basic-Golang-Api/routes"
+	"library/Basic-Golang-Api/routes"
 )
 
 func main() {
