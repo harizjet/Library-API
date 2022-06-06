@@ -1,7 +1,10 @@
 package main
 
-import "fmt"
+import (
+	"example/Basic-Golang-Api/routes"
+)
 
 func main() {
-	fmt.Println("Hyee what are you doing")
+	router := routes.InitRoutes()
+	router.Run("localhost:8080")
 }
