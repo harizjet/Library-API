@@ -1,18 +1,30 @@
 package routes
 
 import (
+	"library/Basic-Golang-Api/adapter/database"
+	"library/Basic-Golang-Api/adapter/database/postgres14"
 	"library/Basic-Golang-Api/data"
-	"library/Basic-Golang-Api/utils"
 	"net/http"
+
+	"library/Basic-Golang-Api/config"
 
 	"github.com/gin-gonic/gin"
 )
 
-func getBooks(c *gin.Context) {
+type Router struct {
+	DatabaseService database.DatabaseService
+}
+
+func (r Router) getBooks(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, data.Books)
 }
 
-func getBookById(c *gin.Context) {
+func (r Router) getBookIdByBookName(c *gin.Context) {
+	name := c.Param("name")
+	name, err := r.DatabaseService.CreateBook()
+}
+
+func (r Router) getBookByBookId(c *gin.Context) {
 	id := c.Param("id")
 	book, err := utils.BookById(id)
 
@@ -24,7 +36,7 @@ func getBookById(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, book)
 }
 
-func createBookOrder(c *gin.Context) {
+func (r Router) createBookOrderByBookId(c *gin.Context) {
 	id, ok := c.GetQuery("id")
 
 	if !ok {
@@ -48,7 +60,7 @@ func createBookOrder(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, book)
 }
 
-func createBook(c *gin.Context) {
+func (r Router) createBook(c *gin.Context) {
 	var newBook data.Book
 
 	if err := c.BindJSON(&newBook); err != nil {
@@ -59,7 +71,7 @@ func createBook(c *gin.Context) {
 	c.IndentedJSON(http.StatusCreated, newBook)
 }
 
-func returnBookOrder(c *gin.Context) {
+func (r Router) returnBookOrderByBookId(c *gin.Context) {
 	id, ok := c.GetQuery("id")
 
 	if !ok {
@@ -78,13 +90,23 @@ func returnBookOrder(c *gin.Context) {
 	c.IndentedJSON(http.StatusCreated, book)
 }
 
-func InitRoutes() *gin.Engine {
+func InitRoutes(cfg config.Config) *gin.Engine {
+	// connect to db adapter
+	postgresService := postgres14.NewService(cfg)
+
+	// initiate Router func
+	routerHand := Router{
+		DatabaseService: postgresService,
+	}
+
+	// gin route
 	router := gin.Default()
-	router.GET("/books", getBooks)
-	router.GET("/books/:id", getBookById)
-	router.POST("/books", createBook)
-	router.PATCH("/checkout", createBookOrder)
-	router.PATCH("/return", returnBookOrder)
+	router.GET("/books", routerHand.getBooks)
+	router.GET("/books", routerHand.getBookIdByBookName)
+	router.GET("/books/:id", routerHand.getBookByBookId)
+	router.POST("/books", routerHand.createBook)
+	router.PATCH("/checkout", routerHand.createBookOrderByBookId)
+	router.PATCH("/return", routerHand.returnBookOrderByBookId)
 
 	return router
 }
